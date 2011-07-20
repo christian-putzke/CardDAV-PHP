@@ -1,0 +1,5 @@
+release 0.1
+- query CardDAV server with XML-Response (only tested on davical)
+- filter functionality for search implementations
+- fieldsets for minimal vcards within the XML-Response
+- authentification
