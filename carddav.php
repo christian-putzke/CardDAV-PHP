@@ -7,7 +7,9 @@
  * --------------------
  * $carddav = new carddav('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
+ * $carddav->set_filter_type('OR');
  * $carddav->set_filter('NICKNAME', 'equals', 'EdMolf');
+ * $carddav->set_filter('EMAIL', 'ends-with', 'example.com');
  * $carddav->set_fields(array('FN','EMAIL'));
  * echo $carddav->get();
  * 
@@ -23,6 +25,7 @@ class carddav
 {
 	protected $url;
 	protected $auth = NULL;
+	protected $filter_type = 'anyof';
 	protected $context = array();
 	protected $fields = array();
 	protected $filter = array();
@@ -101,6 +104,27 @@ class carddav
 	
 	
 	/*
+	 * set the logical filter type for the match filter
+	 *
+	 * @param string $filter_type filter type OR or AND
+	 */
+	public function set_filter_type($filter_type)
+	{
+		switch ($filter_type)
+		{
+			case 'OR':
+				$this->filter_type = 'allof';
+			break;
+			
+			case 'AND':
+			default:
+				$this->filter_type = 'anyof';
+			break;
+		}
+	}
+	
+	
+	/*
 	* set http request context
 	*
 	* @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
@@ -140,7 +164,7 @@ class carddav
 				$xml .= '</D:prop>';
 				$xml .= $this->get_xml_filter();
 			$xml .= '</C:addressbook-query>';
-			
+
 		$this->set_context('REPORT', $xml, 'text/xml');
 	
 		return $this->query($this->url);
@@ -174,7 +198,7 @@ class carddav
 	{
 		if (!empty($this->filter))
 		{
-			$xml_filter = '<C:filter>';
+			$xml_filter = '<C:filter test="'.$this->filter_type.'">';
 			foreach ($this->filter as $fieldname => $filter)
 			{
 				$xml_filter .= '<C:prop-filter name="'.$fieldname.'">';

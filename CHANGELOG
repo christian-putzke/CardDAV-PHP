@@ -1,3 +1,6 @@
+change from 0.1 to 0.11
+- added filter type (OR / AND)
+
 release 0.1
 - query CardDAV server with XML-Response (only tested on davical)
 - filter functionality for search implementations
