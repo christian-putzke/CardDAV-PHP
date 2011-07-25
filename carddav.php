@@ -88,9 +88,9 @@ class carddav
 	 * 
 	 * supported match types
 	 * - equals (an exact match to the target string)
-     * - contains (a substring match, matching anywhere within the target string)
-     * - starts-with (a substring match, matching only at the start of the target string)
-     * - ends-with (a substring match, matching only at the end of the target string)
+	 * - contains (a substring match, matching anywhere within the target string)
+	 * - starts-with (a substring match, matching only at the start of the target string)
+	 * - ends-with (a substring match, matching only at the end of the target string)
 	 * 
 	 * @param string $fieldname fieldnames like in $this->set_fields() described
 	 * @param string $match_type match types
@@ -168,6 +168,18 @@ class carddav
 		$this->set_context('REPORT', $xml, 'text/xml');
 	
 		return $this->query($this->url);
+	}
+	
+	
+	/*
+	* delete entry from cardDAV server
+	* 
+	* @param string $id vcard id on the cardDAV server
+	*/
+	public function delete($vcard_id)
+	{
+		$this->set_context('DELETE');
+		return $this->query($this->url.$vcard_id.'.vcf');
 	}
 	
 	
