@@ -1,3 +1,7 @@
+change from 0.2 to 0.21
+- xml requests will be built by the XMLWriter
+- added etag to simplified response
+
 change from 0.12 to 0.2
 - added add functionality
 - added update functionality

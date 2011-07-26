@@ -61,7 +61,7 @@
  * @author Christian Putzke <cputzke@graviox.de>
  * @copyright Graviox Studios
  * @since 20.07.2011
- * @version 0.2
+ * @version 0.21
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -101,7 +101,7 @@ class carddav
 	
 	
 	/*
-	 * set fields that will be returned by $this->get()
+	 * set vcard-fields that will be returned by $this->get()
 	 * 
 	 * common fields
 	 * - FN (formatted name without any semicolon)
@@ -181,7 +181,7 @@ class carddav
 	private function set_context($method, $content = null, $content_type = null)
 	{
 		$context['http']['method'] = $method;
-		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.2';
+		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.21';
 		
 		if ($content !== null)
 			$context['http']['content'] = $content;
@@ -203,24 +203,36 @@ class carddav
 	*/
 	public function get($raw = false)
 	{
-		$xml = '<?xml version="1.0" encoding="utf-8" ?>';
-			$xml .= '<C:addressbook-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav">';
-				$xml .= '<D:prop>';
-					$xml .= '<D:getetag/>';
-					$xml .= '<C:address-data>';
-						$xml .= '<C:prop name="Version"/>';
-						$xml .= '<C:prop name="FN"/>';
-						$xml .= '<C:prop name="N"/>';
-						$xml .= $this->get_xml_fields();
-					$xml .= '</C:address-data>';
-				$xml .= '</D:prop>';
-				$xml .= $this->get_xml_filter();
-			$xml .= '</C:addressbook-query>';
-
-		$this->set_context('REPORT', $xml, 'text/xml');
+		$xml = new XMLWriter();
+		$xml->openMemory();
+		$xml->setIndent(4);
+		$xml->startDocument('1.0', 'utf-8');
+			$xml->startElement('C:addressbook-query');
+				$xml->writeAttribute('xmlns:D', 'DAV:');
+				$xml->writeAttribute('xmlns:C', 'urn:ietf:params:xml:ns:carddav');
+				$xml->startElement('D:prop');
+					$xml->writeElement('D:getetag');
+					$xml->startElement('C:address-data');
+						$xml->startElement('C:prop');
+							$xml->writeAttribute('name', 'Version');
+						$xml->endElement();
+						$xml->startElement('C:prop');
+							$xml->writeAttribute('name', 'FN');
+						$xml->endElement();
+						$xml->startElement('C:prop');
+							$xml->writeAttribute('name', 'N');
+						$xml->endElement();
+						$this->xml_write_fields($xml);
+					$xml->endElement();
+				$xml->endElement();
+				$this->xml_write_filter($xml);
+			$xml->endElement();
+		$xml->endDocument();
+		
+		$this->set_context('REPORT', $xml->outputMemory(), 'text/xml');
 		$response = $this->query($this->url);
 		
-		if ($raw === true)
+		if ($response === false OR $raw === true)
 		{
 			return $response;
 		}
@@ -308,6 +320,7 @@ class carddav
 						
 						$simplified_xml->startElement('element');
 							$simplified_xml->writeElement('id', $id[0]);
+							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
 							$simplified_xml->writeElement('vcard', $response->propstat->prop->vcard);
 						$simplified_xml->endElement();
 					}
@@ -323,47 +336,45 @@ class carddav
 	
 	
 	/*
-	 * get fields xml formatted
+	 * write vcard fields xml formatted
+	 * 
+	 * @param XMLWriter $xml
 	 */
-	private function get_xml_fields()
+	private function xml_write_fields(XMLWriter $xml)
 	{
-		if (!empty($this->fields))
+		foreach ($this->fields as $fieldname)
 		{
-			$xml_fields = null;
-			foreach ($this->fields as $fieldname)
-			{
-				$xml_fields .= '<C:prop name="'.$fieldname.'"/>';
-			}
-			
-			return $xml_fields;
+			$xml->startElement('C:prop');
+				$xml->writeAttribute('name', $fieldname);
+			$xml->endElement();
 		}
-		
-		return null;
 	}
 	
 	
 	/*
-	 * get filter xml formatted
+	 * write carddav filter xml formatted
+	 * 
+	 * @param XMLWriter $xml
 	 */
-	private function get_xml_filter()
+	private function xml_write_filter(XMLWriter $xml)
 	{
 		if (!empty($this->filter))
 		{
-			$xml_filter = '<C:filter test="'.$this->filter_type.'">';
-			foreach ($this->filter as $fieldname => $filter)
-			{
-				$xml_filter .= '<C:prop-filter name="'.$fieldname.'">';
-					$xml_filter .= '<C:text-match collation="i;unicode-casemap" match-type="'.$filter['match_type'].'">';
-						$xml_filter .= $filter['text'];
-					$xml_filter .= '</C:text-match>';
-				$xml_filter .= '</C:prop-filter>';
-			}
-			$xml_filter .= '</C:filter>';
-			
-			return $xml_filter;
+			$xml->startElement('C:filter');
+				$xml->writeAttribute('test', $this->filter_type);
+				foreach ($this->filter as $fieldname => $filter)
+				{
+					$xml->startElement('C:prop-filter');
+						$xml->writeAttribute('name', $fieldname);
+						$xml->startElement('C:text-match');
+							$xml->writeAttribute('collation', 'i;unicode-casemap');
+							$xml->writeAttribute('match-type', $filter['match_type']);
+							$xml->text($filter['text']);
+						$xml->endElement();
+					$xml->endElement();
+				}
+			$xml->endElement();
 		}
-		
-		return null;
 	}
 	
 	
@@ -393,7 +404,7 @@ class carddav
 	*/
 	private function query($url)
 	{
-		if ($stream = @fopen($url, 'r', false, $this->context))
+		if ($stream = fopen($url, 'r', false, $this->context))
 			return $this->get_response($stream);
 		
 		return false;
