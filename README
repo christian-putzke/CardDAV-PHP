@@ -1,3 +1,5 @@
-This is a CardDAV-PHP-Client written by Christian Putzke <cputzke@graviox.de>
+This is a cardDAV-PHP-Client written by Christian Putzke
 
-The documentation can be found in the class itself.
+- The documentation can be found in the class itself
+- Report feature requests and bugs here: https://github.com/graviox/cardDAV-PHP/issues
+- Visit Graviox Studios: http://www.graviox.de/

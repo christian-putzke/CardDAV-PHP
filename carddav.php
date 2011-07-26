@@ -1,31 +1,77 @@
 <?php
 
 /*
- * cardDAV Class
+ * cardDAV-PHP
  *
  * simple carddav query
+ * --------------------
+ * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav->set_auth('username', 'password');
+ * $carddav->set_fields(array('EMAIL'));
+ * echo $carddav->get();
+ *
+ *
+ * carddav query with filters
  * --------------------
  * $carddav = new carddav('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * $carddav->set_filter_type('OR');
  * $carddav->set_filter('NICKNAME', 'equals', 'EdMolf');
  * $carddav->set_filter('EMAIL', 'ends-with', 'example.com');
- * $carddav->set_fields(array('FN','EMAIL'));
+ * $carddav->set_fields(array('EMAIL'));
  * echo $carddav->get();
+ * 
+ * 
+ * carddav delete query
+ * --------------------
+ * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav->set_auth('username', 'password');
+ * $carddav->delete('0126FFB4-2EB74D0A-302EA17F');
+ * 
+ * 
+ *  * carddav add query
+ * --------------------
+ * $vcard = 'BEGIN:VCARD
+ * VERSION:3.0
+ * FN:Christian Putzke
+ * N:Christian;Putzke;;;
+ * EMAIL;TYPE=OTHER:cputzke@graviox.de
+ * END:VCARD';
+ * 
+ * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav->set_auth('username', 'password');
+ * $carddav->add($vcard);
+ * 
+ * 
+ *  carddav update query
+ * --------------------
+ * $vcard = 'BEGIN:VCARD
+ * VERSION:3.0
+ * FN:Christian Putzke
+ * N:Christian;Putzke;;;
+ * EMAIL;TYPE=OTHER:cputzke@graviox.de
+ * END:VCARD';
+ * 
+ * $carddav = new carddav('https://davical.example.com/user/contacts/');
+ * $carddav->set_auth('username', 'password');
+ * $carddav->update($vcard, '0126FFB4-2EB74D0A-302EA17F');
+ * 
  * 
  * 
  * @author Christian Putzke <cputzke@graviox.de>
  * @copyright Graviox Studios
  * @since 20.07.2011
- * @version 0.1
+ * @version 0.2
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
+
 class carddav
 {
 	protected $url;
-	protected $auth = NULL;
+	protected $auth = null;
 	protected $filter_type = 'anyof';
+	protected $id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
 	protected $context = array();
 	protected $fields = array();
 	protected $filter = array();
@@ -58,7 +104,7 @@ class carddav
 	 * set fields that will be returned by $this->get()
 	 * 
 	 * common fields
-	 * - FN (full name without any semicolon)
+	 * - FN (formatted name without any semicolon)
 	 * - N (name semicolon separated)
 	 * - EMAIL (email adresses work, private, etc.)
 	 * - NICKNAME
@@ -73,7 +119,8 @@ class carddav
 	 * - ROLE (organisation role)
 	 * - TITLE (organisation title)
 	 * 
-	 * these are just a few fields but I think the mostly common ones
+	 * These are just a few fields but I think the mostly common ones
+	 * For further information visit http://en.wikipedia.org/wiki/VCard#Properties
 	 * 
 	 * @param array $fields array with fields that will be displayed in the vcards
 	 */
@@ -131,17 +178,18 @@ class carddav
 	* @param string $content content for cardDAV queries
 	* @param string $content_type set content-type
 	*/
-	private function set_context($method, $content = NULL, $content_type = NULL)
+	private function set_context($method, $content = null, $content_type = null)
 	{
 		$context['http']['method'] = $method;
-	
-		if ($content !== NULL)
+		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.2';
+		
+		if ($content !== null)
 			$context['http']['content'] = $content;
 	
-		if ($content_type !== NULL)
+		if ($content_type !== null)
 			$context['http']['header'][] = 'Content-type: '.$content_type;
 	
-		if ($this->auth !== NULL)
+		if ($this->auth !== null)
 			$context['http']['header'][] = 'Authorization: Basic '.$this->auth;
 	
 		$this->context = stream_context_create($context);
@@ -150,8 +198,10 @@ class carddav
 	
 	/*
 	* get xml-response from the cardDAV server
+	* 
+	* @param boolean $raw get response raw or simplified
 	*/
-	public function get()
+	public function get($raw = false)
 	{
 		$xml = '<?xml version="1.0" encoding="utf-8" ?>';
 			$xml .= '<C:addressbook-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav">';
@@ -159,6 +209,8 @@ class carddav
 					$xml .= '<D:getetag/>';
 					$xml .= '<C:address-data>';
 						$xml .= '<C:prop name="Version"/>';
+						$xml .= '<C:prop name="FN"/>';
+						$xml .= '<C:prop name="N"/>';
 						$xml .= $this->get_xml_fields();
 					$xml .= '</C:address-data>';
 				$xml .= '</D:prop>';
@@ -166,13 +218,33 @@ class carddav
 			$xml .= '</C:addressbook-query>';
 
 		$this->set_context('REPORT', $xml, 'text/xml');
+		$response = $this->query($this->url);
+		
+		if ($raw === true)
+		{
+			return $response;
+		}
+		else
+		{
+			return $this->simplify($response);
+		}
+	}
 	
-		return $this->query($this->url);
+
+	/*
+	 * get a vcard from the cardDAV server
+	 * 
+	 * @param string $id vcard id on the cardDAV server
+	 */
+	public function get_vcard($vcard_id)
+	{
+		$this->set_context('GET');
+		return $this->query($this->url.$vcard_id.'.vcf');
 	}
 	
 	
 	/*
-	* delete entry from cardDAV server
+	* deletes an entry from the cardDAV server
 	* 
 	* @param string $id vcard id on the cardDAV server
 	*/
@@ -184,13 +256,80 @@ class carddav
 	
 	
 	/*
+	* adds an entry to the cardDAV server
+	*
+	* @param string $vcard vcard
+	*/
+	public function add($vcard, $vcard_id = null)
+	{
+		if ($vcard_id === null)
+			$vcard_id = $this->generate_id(); 
+		
+		$vcard = str_replace("\t", null, $vcard);
+		$this->set_context('PUT', $vcard, 'text/vcard');
+		return $this->query($this->url.$vcard_id.'.vcf');
+	}
+	
+	
+	/*
+	* updates an entry to the cardDAV server
+	*
+	* @param string $vcard vcard
+	* @param string $id vcard id on the cardDAV server
+	*/
+	public function update($vcard, $vcard_id)
+	{
+		return $this->add($vcard, $vcard_id);
+	}
+	
+	
+	/*
+	* simplify cardDAV xml-response
+	*
+	* @param string $response cardDAV xml-response
+	*/
+	private function simplify($response)
+	{
+		$response = str_replace('VC:address-data', 'vcard', $response);
+		$xml = new SimpleXMLElement($response);
+		
+		if (!empty($xml->response))
+		{
+			$simplified_xml = new XMLWriter();
+			$simplified_xml->openMemory();
+			$simplified_xml->setIndent(4);
+			
+			$simplified_xml->startDocument('1.0', 'utf-8');
+				$simplified_xml->startElement('response');
+				
+					foreach ($xml->response as $response)
+					{
+						preg_match('/[A-F0-9]{8}-[A-F0-9]{8}-[A-F0-9]{8}/', $response->href, $id);
+						
+						$simplified_xml->startElement('element');
+							$simplified_xml->writeElement('id', $id[0]);
+							$simplified_xml->writeElement('vcard', $response->propstat->prop->vcard);
+						$simplified_xml->endElement();
+					}
+				
+				$simplified_xml->endElement();
+			$simplified_xml->endDocument();
+			
+			return $simplified_xml->outputMemory();
+		}
+
+		return null;
+	}
+	
+	
+	/*
 	 * get fields xml formatted
 	 */
 	private function get_xml_fields()
 	{
 		if (!empty($this->fields))
 		{
-			$xml_fields = NULL;
+			$xml_fields = null;
 			foreach ($this->fields as $fieldname)
 			{
 				$xml_fields .= '<C:prop name="'.$fieldname.'"/>';
@@ -239,8 +378,8 @@ class carddav
 		
 		foreach ($response_header['wrapper_data'] as $header)
 		{
-			if (preg_match('/Content-Length/',$header))
-				$content_length = (int) str_replace('Content-Length: ',null, $header);
+			if (preg_match('/Content-Length/', $header))
+				$content_length = (int) str_replace('Content-Length: ', null, $header);
 		}
 		
 		return stream_get_contents($stream, $content_length);
@@ -258,5 +397,39 @@ class carddav
 			return $this->get_response($stream);
 		
 		return false;
+	}
+	
+	
+	/*
+	 * returns a valid and unused vcard id
+	 */
+	private function generate_id()
+	{
+		$id = null;
+		
+		for ($number = 0; $number <= 25; $number ++)
+		{
+			if ($number == 8 OR $number == 17)
+			{
+				$id .= '-';
+			}
+			else
+			{
+				$id .= $this->id_chars[mt_rand(0, (count($this->id_chars) - 1))];
+			}
+		}
+
+		$cardDAV = new carddav($this->url);
+		$cardDAV->auth = $this->auth;
+		$cardDAV->set_context('GET');
+		
+		if ($cardDAV->query($this->url.$id.'.vcf') === false)
+		{
+			return $id;
+		}
+		else
+		{
+			return $this->generate_id();
+		}
 	}
 }
