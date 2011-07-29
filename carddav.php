@@ -1,13 +1,13 @@
 <?php
 
-/*
+/**
  * cardDAV-PHP
  *
  * simple carddav query
  * --------------------
  * $carddav = new carddav('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
- * $carddav->set_fields(array('EMAIL'));
+ * $carddav->set_vcard_properties(array('EMAIL'));
  * echo $carddav->get();
  *
  *
@@ -18,7 +18,7 @@
  * $carddav->set_filter_type('OR');
  * $carddav->set_filter('NICKNAME', 'equals', 'EdMolf');
  * $carddav->set_filter('EMAIL', 'ends-with', 'example.com');
- * $carddav->set_fields(array('EMAIL'));
+ * $carddav->set_vcard_properties(array('EMAIL'));
  * echo $carddav->get();
  * 
  * 
@@ -61,7 +61,7 @@
  * @author Christian Putzke <cputzke@graviox.de>
  * @copyright Graviox Studios
  * @since 20.07.2011
- * @version 0.21
+ * @version 0.22
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -72,27 +72,30 @@ class carddav
 	protected $auth = null;
 	protected $filter_type = 'anyof';
 	protected $id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
+	protected $match_types = array('equals', 'contains', 'stats-with', 'ends-with');
 	protected $context = array();
-	protected $fields = array();
+	protected $vcard_properties = array();
 	protected $filter = array();
 	
 	
-	/*
+	/**
 	 * set the cardDAV server url
 	 * 
 	 * @param string $url cardDAV server url
+	 * @access public
 	 */
 	public function __construct($url)
 	{
-		$this->url = $url; 
+		$this->url = $url;
 	}
 	
 	
-	/*
+	/**
 	 * set authentification information and base64 encode them
 	 * 
 	 * @param string $username cardDAV username
 	 * @param string $password cardDAV password
+	 * @access public
 	 */
 	public function set_auth($username, $password)
 	{
@@ -100,10 +103,10 @@ class carddav
 	}
 	
 	
-	/*
-	 * set vcard-fields that will be returned by $this->get()
+	/**
+	 * set vcard properties that will be returned by $this->get()
 	 * 
-	 * common fields
+	 * common vcard properties
 	 * - FN (formatted name without any semicolon)
 	 * - N (name semicolon separated)
 	 * - EMAIL (email adresses work, private, etc.)
@@ -119,18 +122,19 @@ class carddav
 	 * - ROLE (organisation role)
 	 * - TITLE (organisation title)
 	 * 
-	 * These are just a few fields but I think the mostly common ones
+	 * These are just a few vcard properties but I think the mostly common ones
 	 * For further information visit http://en.wikipedia.org/wiki/VCard#Properties
 	 * 
-	 * @param array $fields array with fields that will be displayed in the vcards
+	 * @param array $vcard_properties array with vcard properties
+	 * @access public
 	 */
-	public function set_fields(array $fields)
+	public function set_vcard_properties(array $vcard_properties)
 	{
-		$this->fields = $fields;
+		$this->vcard_properties = $vcard_properties;
 	}
 	
 	
-	/*
+	/**
 	 * set search filter that will be considered by $this->get()
 	 * 
 	 * supported match types
@@ -139,21 +143,27 @@ class carddav
 	 * - starts-with (a substring match, matching only at the start of the target string)
 	 * - ends-with (a substring match, matching only at the end of the target string)
 	 * 
-	 * @param string $fieldname fieldnames like in $this->set_fields() described
+	 * @param string $property vcard property like in $this->set_vcard_properties() described
 	 * @param string $match_type match types
 	 * @param string $text searched text
+	 * @access public
+	 * @throws Exception wrong match type given
 	 */
-	public function set_filter($fieldname, $match_type, $text)
+	public function set_filter($property, $match_type, $text)
 	{
-		$this->filter[$fieldname]['match_type'] = $match_type;
-		$this->filter[$fieldname]['text'] = $text;
+		if (!in_array($match_type, $this->match_types))
+			throw new Exception('wrong match type given: '.$match_type);
+		
+		$this->filter[$property]['match_type'] = $match_type;
+		$this->filter[$property]['text'] = $text;
 	}
 	
 	
-	/*
+	/**
 	 * set the logical filter type for the match filter
 	 *
 	 * @param string $filter_type filter type OR or AND
+	 * @access public
 	 */
 	public function set_filter_type($filter_type)
 	{
@@ -164,24 +174,28 @@ class carddav
 			break;
 			
 			case 'AND':
-			default:
 				$this->filter_type = 'anyof';
+			break;
+			
+			default:
+				throw new Exception('wrong filter type given: '.$filter_type);
 			break;
 		}
 	}
 	
 	
-	/*
-	* set http request context
-	*
-	* @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
-	* @param string $content content for cardDAV queries
-	* @param string $content_type set content-type
-	*/
+	/**
+	 * set http request context
+	 *
+	 * @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
+	 * @param string $content content for cardDAV queries
+	 * @param string $content_type set content-type
+	 * @access private
+	 */
 	private function set_context($method, $content = null, $content_type = null)
 	{
 		$context['http']['method'] = $method;
-		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.21';
+		$context['http']['header'][] = 'User-Agent: cardDAV-PHP/0.22';
 		
 		if ($content !== null)
 			$context['http']['content'] = $content;
@@ -196,11 +210,13 @@ class carddav
 	}
 	
 	
-	/*
-	* get xml-response from the cardDAV server
-	* 
-	* @param boolean $raw get response raw or simplified
-	*/
+	/**
+	 * get xml-response from the cardDAV server
+	 * 
+	 * @param boolean $raw get response raw or simplified
+	 * @access public
+	 * @return string raw or simplified xml response
+	 */
 	public function get($raw = false)
 	{
 		$xml = new XMLWriter();
@@ -222,7 +238,7 @@ class carddav
 						$xml->startElement('C:prop');
 							$xml->writeAttribute('name', 'N');
 						$xml->endElement();
-						$this->xml_write_fields($xml);
+						$this->xml_write_vcard_properties($xml);
 					$xml->endElement();
 				$xml->endElement();
 				$this->xml_write_filter($xml);
@@ -242,11 +258,34 @@ class carddav
 		}
 	}
 	
+	
+	/**
+	* get the response from the cardDAV server
+	*
+	* @param resource $stream cardDAV stream resource
+	* @access private
+	* @return string cardDAV xml-response
+	*/
+	private function get_response($stream)
+	{
+		$response_header = stream_get_meta_data($stream);
+	
+		foreach ($response_header['wrapper_data'] as $header)
+		{
+			if (preg_match('/Content-Length/', $header))
+				$content_length = (int) str_replace('Content-Length: ', null, $header);
+		}
+	
+		return stream_get_contents($stream, $content_length);
+	}
+	
 
-	/*
+	/**
 	 * get a vcard from the cardDAV server
 	 * 
 	 * @param string $id vcard id on the cardDAV server
+	 * @access public
+	 * @return string cardDAV xml-response
 	 */
 	public function get_vcard($vcard_id)
 	{
@@ -255,11 +294,13 @@ class carddav
 	}
 	
 	
-	/*
-	* deletes an entry from the cardDAV server
-	* 
-	* @param string $id vcard id on the cardDAV server
-	*/
+	/**
+	 * deletes an entry from the cardDAV server
+	 * 
+	 * @param string $id vcard id on the cardDAV server
+	 * @access public
+	 * @return string cardDAV xml-response
+	 */
 	public function delete($vcard_id)
 	{
 		$this->set_context('DELETE');
@@ -267,11 +308,14 @@ class carddav
 	}
 	
 	
-	/*
-	* adds an entry to the cardDAV server
-	*
-	* @param string $vcard vcard
-	*/
+	/**
+	 * adds an entry to the cardDAV server
+	 *
+	 * @param string $vcard vcard
+	 * @param string $vcard_id vcard id on the cardDAV server
+	 * @access public
+	 * @return string cardDAV xml-response
+	 */
 	public function add($vcard, $vcard_id = null)
 	{
 		if ($vcard_id === null)
@@ -283,78 +327,78 @@ class carddav
 	}
 	
 	
-	/*
-	* updates an entry to the cardDAV server
-	*
-	* @param string $vcard vcard
-	* @param string $id vcard id on the cardDAV server
-	*/
+	/**
+	 * updates an entry to the cardDAV server
+	 *
+	 * @param string $vcard vcard
+	 * @param string $id vcard id on the cardDAV server
+	 * @access public
+	 * @return string cardDAV xml-response
+	 */
 	public function update($vcard, $vcard_id)
 	{
 		return $this->add($vcard, $vcard_id);
 	}
 	
 	
-	/*
-	* simplify cardDAV xml-response
-	*
-	* @param string $response cardDAV xml-response
-	*/
+	/**
+	 * simplify cardDAV xml-response
+	 *
+	 * @param string $response cardDAV xml-response
+	 * @access private
+	 * @return string simplified cardDAV xml-response
+	 */
 	private function simplify($response)
 	{
 		$response = str_replace('VC:address-data', 'vcard', $response);
 		$xml = new SimpleXMLElement($response);
 		
-		if (!empty($xml->response))
-		{
-			$simplified_xml = new XMLWriter();
-			$simplified_xml->openMemory();
-			$simplified_xml->setIndent(4);
+		$simplified_xml = new XMLWriter();
+		$simplified_xml->openMemory();
+		$simplified_xml->setIndent(4);
+		
+		$simplified_xml->startDocument('1.0', 'utf-8');
+			$simplified_xml->startElement('response');
 			
-			$simplified_xml->startDocument('1.0', 'utf-8');
-				$simplified_xml->startElement('response');
-				
-					foreach ($xml->response as $response)
-					{
-						preg_match('/[A-F0-9]{8}-[A-F0-9]{8}-[A-F0-9]{8}/', $response->href, $id);
-						
-						$simplified_xml->startElement('element');
-							$simplified_xml->writeElement('id', $id[0]);
-							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-							$simplified_xml->writeElement('vcard', $response->propstat->prop->vcard);
-						$simplified_xml->endElement();
-					}
-				
-				$simplified_xml->endElement();
-			$simplified_xml->endDocument();
+				foreach ($xml->response as $response)
+				{
+					preg_match('/[A-F0-9]{8}-[A-F0-9]{8}-[A-F0-9]{8}/', $response->href, $id);
+					
+					$simplified_xml->startElement('element');
+						$simplified_xml->writeElement('id', (isset($id[0]) ? $id[0] : null));
+						$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+						$simplified_xml->writeElement('vcard', $response->propstat->prop->vcard);
+					$simplified_xml->endElement();
+				}
 			
-			return $simplified_xml->outputMemory();
-		}
-
-		return null;
+			$simplified_xml->endElement();
+		$simplified_xml->endDocument();
+		
+		return $simplified_xml->outputMemory();
 	}
 	
-	
-	/*
-	 * write vcard fields xml formatted
+	/**
+	 * write vcard properties xml formatted
 	 * 
 	 * @param XMLWriter $xml
+	 * @access private
 	 */
-	private function xml_write_fields(XMLWriter $xml)
+	private function xml_write_vcard_properties(XMLWriter $xml)
 	{
-		foreach ($this->fields as $fieldname)
+		foreach ($this->vcard_properties as $property)
 		{
 			$xml->startElement('C:prop');
-				$xml->writeAttribute('name', $fieldname);
+				$xml->writeAttribute('name', $property);
 			$xml->endElement();
 		}
 	}
 	
 	
-	/*
+	/**
 	 * write carddav filter xml formatted
 	 * 
 	 * @param XMLWriter $xml
+	 * @access private
 	 */
 	private function xml_write_filter(XMLWriter $xml)
 	{
@@ -362,10 +406,10 @@ class carddav
 		{
 			$xml->startElement('C:filter');
 				$xml->writeAttribute('test', $this->filter_type);
-				foreach ($this->filter as $fieldname => $filter)
+				foreach ($this->filter as $property => $filter)
 				{
 					$xml->startElement('C:prop-filter');
-						$xml->writeAttribute('name', $fieldname);
+						$xml->writeAttribute('name', $property);
 						$xml->startElement('C:text-match');
 							$xml->writeAttribute('collation', 'i;unicode-casemap');
 							$xml->writeAttribute('match-type', $filter['match_type']);
@@ -378,41 +422,33 @@ class carddav
 	}
 	
 	
-	/*
-	 * get the response from the cardDAV server
+	/**
+	 * quries the cardDAV server and returns the response
 	 * 
-	 * @param resource $stream cardDAV stream resource
+	 * @param string $url cardDAV server url
+	 * @access private
+	 * @throws Exception can't access url
+	 * @return string cardDAV xml-response
 	 */
-	private function get_response($stream)
-	{
-		$response_header = stream_get_meta_data($stream);
-		
-		foreach ($response_header['wrapper_data'] as $header)
-		{
-			if (preg_match('/Content-Length/', $header))
-				$content_length = (int) str_replace('Content-Length: ', null, $header);
-		}
-		
-		return stream_get_contents($stream, $content_length);
-	}
-	
-	
-	/*
-	* quries the cardDAV server and returns the response
-	* 
-	* @param string $url cardDAV server url
-	*/
 	private function query($url)
 	{
 		if ($stream = fopen($url, 'r', false, $this->context))
+		{
 			return $this->get_response($stream);
+		}
+		else
+		{
+			throw new Exception('can\'t access url: '.$url);
+		}
 		
-		return false;
 	}
 	
 	
-	/*
+	/**
 	 * returns a valid and unused vcard id
+	 * 
+	 * @access private
+	 * @return string valid vcard id
 	 */
 	private function generate_id()
 	{
