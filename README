@@ -1,5 +1,26 @@
-This is a cardDAV-PHP-Client written by Christian Putzke
+Description
+-----------
+This is a cardDAV-PHP-Client
 
-- The documentation can be found in the class itself
-- Report feature requests and bugs here: https://github.com/graviox/cardDAV-PHP/issues
-- Visit Graviox Studios: http://www.graviox.de/
+
+Features
+--------
+* query cardDAV-Server with XML-Response (only tested on davical)
+* authentification
+* add/update/delete vcards to a cardDAV-Server
+* get single vcards from a cardDAV-Server
+* check server connection
+* get raw or simplified cardDAV-Server response
+
+
+Installation
+------------
+* nothing to install - it's standalone
+* documentation can be found in the class itself
+
+
+Contact
+-------
+* Author: Christian Putzke <cputzke@graviox.de>
+* Report feature requests and bugs here: https://github.com/graviox/cardDAV-PHP/issues
+* Visit Graviox Studios: http://www.graviox.de/

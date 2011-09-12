@@ -1,3 +1,11 @@
+change from 0.22 to 0.3
+- deleted unused methods
+- added server connection check
+- added some more examples
+- get() can now return complete vcards
+- class renamed to carddav_backend
+- optimized for synchronisation useage
+
 change from 0.21 to 0.22
 - added error handling
 - added phpdoc support
