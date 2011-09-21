@@ -1,3 +1,9 @@
+change from 0.3 to 0.31
+- get only entries if a vCard id exists
+- get etag bugfix (PROFIND -> REPORT)
+- vCard id generator bugfix
+- minor class-structure and comment changes
+
 change from 0.22 to 0.3
 - deleted unused methods
 - added server connection check
