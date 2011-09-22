@@ -62,20 +62,49 @@
  * 
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
+ * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.31
+ * @version 0.32
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
 
 class carddav_backend
 {
+	/**
+	 * cardDAV-Server url
+	 *
+	 * @var string
+	 */
 	protected $url = null;
+	
+	/**
+	 * base64 encoded authentification information
+	 * 
+	 * @var string
+	 */
 	protected $auth = null;
+	
+	/**
+	 * characters used for vCard id generation
+	 * 
+	 * @var array
+	 */
 	protected $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
+	
+	/**
+	 * http request context
+	 * 
+	 * @var array
+	 */
 	protected $context = array();
-	protected $user_agent = 'cardDAV-PHP/0.31';
-
+	
+	/**
+	 * user agent displayed in http requests
+	 * 
+	 * @var string
+	 */
+	protected $user_agent = 'cardDAV-PHP/0.32';
 
 	/**
 	 * set the cardDAV-Server url
@@ -86,7 +115,6 @@ class carddav_backend
 	{
 		$this->url = $url;
 	}
-	
 	
 	/**
 	 * set authentification information and base64 encode them
@@ -99,7 +127,6 @@ class carddav_backend
 		$this->auth = base64_encode($username.':'.$password);
 	}
 
-	
 	/**
 	 * set http request context
 	 *
@@ -129,7 +156,6 @@ class carddav_backend
 	
 		$this->context = stream_context_create($context);
 	}
-	
 	
 	/**
 	 * get xml-response from the cardDAV-Server
@@ -166,7 +192,6 @@ class carddav_backend
 		}
 	}
 	
-	
 	/**
 	* get the response from the cardDAV-Server
 	*
@@ -185,7 +210,6 @@ class carddav_backend
 	
 		return stream_get_contents($stream, $content_length);
 	}
-	
 
 	/**
 	 * get a vCard from the cardDAV-Server
@@ -199,7 +223,6 @@ class carddav_backend
 		$this->set_context('GET');
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
-	
 	
 	/**
 	* checks if the cardDAV-Server is reachable
@@ -221,7 +244,6 @@ class carddav_backend
 		}
 	}
 	
-	
 	/**
 	 * deletes an entry from the cardDAV-Server
 	 * 
@@ -233,7 +255,6 @@ class carddav_backend
 		$this->set_context('DELETE');
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
-
 	
 	/**
 	 * adds an entry to the cardDAV-Server
@@ -254,7 +275,6 @@ class carddav_backend
 		return $this->query($this->url.$vcard_id.'.vcf');
 	}
 	
-	
 	/**
 	 * updates an entry to the cardDAV-Server
 	 *
@@ -267,7 +287,6 @@ class carddav_backend
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
 		return $this->add($vcard, $vcard_id);
 	}
-	
 	
 	/**
 	 * simplify cardDAV xml-response
@@ -313,7 +332,6 @@ class carddav_backend
 		return $simplified_xml->outputMemory();
 	}
 	
-	
 	/**
 	 * quries the cardDAV-Server and returns the response
 	 * 
@@ -332,7 +350,6 @@ class carddav_backend
 		}
 		
 	}
-	
 	
 	/**
 	 * returns a valid and unused vCard id
