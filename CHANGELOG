@@ -1,4 +1,7 @@
-change from 0.3 to 0.32
+change from 0.32 to 0.33
+- minor comment changes
+
+change from 0.31 to 0.32
 - minor phpdoc changes / extensions
 
 change from 0.3 to 0.31
@@ -12,8 +15,6 @@ change from 0.22 to 0.3
 - added server connection check
 - added some more examples
 - get() can now return complete vcards
-- class renamed to carddav_backend
-- optimized for synchronisation useage
 
 change from 0.21 to 0.22
 - added error handling
