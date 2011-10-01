@@ -1,3 +1,6 @@
+change from 0.33 to 0.34
+- vCard id returned by get() excludes now the file extension ".vcf"
+
 change from 0.32 to 0.33
 - minor comment changes
 
@@ -14,7 +17,7 @@ change from 0.22 to 0.3
 - deleted unused methods
 - added server connection check
 - added some more examples
-- get() can now return complete vcards
+- get() can now return complete vCards
 
 change from 0.21 to 0.22
 - added error handling
@@ -28,10 +31,10 @@ change from 0.2 to 0.21
 change from 0.12 to 0.2
 - added add functionality
 - added update functionality
-- added get vcard functionality
+- added get vCard functionality
 - added user-agent to http-requests
 - added simplified response
-- set vcard standard fields (Version, N, FN)
+- set vCard standard fields (Version, N, FN)
 
 change from 0.11 to 0.12
 - added delete functionality
@@ -42,5 +45,5 @@ change from 0.1 to 0.11
 release 0.1
 - query CardDAV server with XML-Response (only tested on davical)
 - filter functionality for search implementations
-- fieldsets for minimal vcards within the XML-Response
+- fieldsets for minimal vCards within the XML-Response
 - authentification
