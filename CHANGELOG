@@ -1,40 +1,47 @@
-change from 0.33 to 0.4
+change from 0.4 to 0.4.1
+- added memotoo support
+- bugfix: mostly check_connection() returned "true" if the server connection failed
+- removed unused code
+- standardized "get last modified" to unix-timestamp
+- changed version naming
+
+change from 0.3.3 to 0.4
 - switched from "fopen" to curl for all server requests
 - get() uses now PROPFIND instead of REPORT
 - simplified response additionally returns "get last modified"
 - added Apple addressbook server support
 
-change from 0.33 to 0.34
+change from 0.3.3 to 0.3.4
 - vCard id returned by get() excludes now the file extension ".vcf"
 
-change from 0.32 to 0.33
+change from 0.3.2 to 0.3.3
 - minor comment changes
 
-change from 0.31 to 0.32
+change from 0.3.1 to 0.3.2
 - minor phpdoc changes / extensions
 
-change from 0.3 to 0.31
+change from 0.3 to 0.3.1
 - get only entries if a vCard id exists
 - get etag bugfix (PROFIND -> REPORT)
 - vCard id generator bugfix
 - minor class-structure and comment changes
 
-change from 0.22 to 0.3
+change from 0.2.2 to 0.3
 - deleted unused methods
 - added server connection check
 - added some more examples
 - get() can now return complete vCards
 
-change from 0.21 to 0.22
+change from 0.2.1 to 0.2.2
 - added error handling
 - added phpdoc support
 - cleaned comments / variables
 
-change from 0.2 to 0.21
+change from 0.2 to 0.2.1
 - xml requests will be built by the XMLWriter
 - added etag to simplified response
 
-change from 0.12 to 0.2
+change from 0.1.2 to 0.2
 - added add functionality
 - added update functionality
 - added get vCard functionality
@@ -42,10 +49,10 @@ change from 0.12 to 0.2
 - added simplified response
 - set vCard standard fields (Version, N, FN)
 
-change from 0.11 to 0.12
+change from 0.1.1 to 0.1.2
 - added delete functionality
 
-change from 0.1 to 0.11
+change from 0.1 to 0.1.1
 - added filter type (OR / AND)
 
 release 0.1

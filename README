@@ -7,15 +7,17 @@ Features
 --------
 * query CardDAV-Server with XML-Response
 * authentification
-* add/update/delete vcards to a CardDAV-Server
-* get single vcards from a CardDAV-Server
+* add/update/delete vCards on a CardDAV-Server
+* get single vCards from a CardDAV-Server
 * check server connection
 * get raw or simplified CardDAV-Server response
+* tested CardDAV-Servers: davical, apple addressbook server, meetoo
 
 
 Installation
 ------------
 * nothing to install - it's standalone
+* requires curl since version 0.4
 * documentation can be found in the class itself
 
 
