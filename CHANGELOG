@@ -1,3 +1,9 @@
+change from 0.33 to 0.4
+- switched from "fopen" to curl for all server requests
+- get() uses now PROPFIND instead of REPORT
+- simplified response additionally returns "get last modified"
+- added Apple addressbook server support
+
 change from 0.33 to 0.34
 - vCard id returned by get() excludes now the file extension ".vcf"
 
