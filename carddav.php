@@ -66,7 +66,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.2
+ * @version 0.4.3
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -99,7 +99,7 @@ class carddav_backend
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.4.2';
+	protected $user_agent = 'CardDAV-PHP/0.4.3';
 	
 	/**
 	 * constructor
@@ -241,7 +241,7 @@ class carddav_backend
 		$response = $this->clean_response($response);
 		
 		$xml = new SimpleXMLElement($response);
-		
+
 		$simplified_xml = new XMLWriter();
 		$simplified_xml->openMemory();
 		$simplified_xml->setIndent(4);
@@ -251,11 +251,11 @@ class carddav_backend
 			
 				foreach ($xml->response as $response)
 				{
-					if (preg_match('/vcard/', $response->propstat->prop->getcontenttype))
+					if (preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href))
 					{
 						$id = basename($response->href);
 						$id = str_replace('.vcf', null, $id);
-	
+						
 						if (!empty($id))
 						{
 							$simplified_xml->startElement('element');
@@ -272,7 +272,7 @@ class carddav_backend
 						}
 					}
 				}
-			
+				
 			$simplified_xml->endElement();
 		$simplified_xml->endDocument();
 		
@@ -288,6 +288,7 @@ class carddav_backend
 	private function clean_response($response)
 	{
 		$response = str_replace('D:', null, $response);
+		$response = str_replace('d:', null, $response);
 		
 		return $response;
 	}

@@ -1,3 +1,6 @@
+change from 0.4.2 to 0.4.3
+- added sabreDAV support
+
 change from 0.4.1 to 0.4.2
 - standardized "get last modified" seems not to work with every server configuration -> no standardized date anymore!
 
