@@ -1,17 +1,16 @@
 Description
 -----------
-This is a CardDAV-PHP-Client
+This is a simple CardDAV-Client written in PHP called "CardDAV-PHP".
 
 
 Features
 --------
-* query CardDAV-Server with XML-Response
-* authentification
+* query a CardDAV-Server with XML-Response (simplified or raw)
+* supports many authentification methods
 * add/update/delete vCards on a CardDAV-Server
 * get single vCards from a CardDAV-Server
 * check server connection
-* get raw or simplified CardDAV-Server response
-* tested CardDAV-Servers: davical, apple addressbook server, meetoo
+* tested CardDAV-Servers: DAViCal, Apple Addressbook Server, memotoo, SabreDAV, ownCloud
 
 
 Installation
@@ -26,3 +25,4 @@ Contact
 * Author: Christian Putzke <christian.putzke@graviox.de>
 * Report feature requests and bugs here: https://github.com/graviox/CardDAV-PHP/issues
 * Visit Graviox Studios: http://www.graviox.de/
+* Follow me on Twitter: http://twitter.com/graviox

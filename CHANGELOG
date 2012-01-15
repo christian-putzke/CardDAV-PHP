@@ -1,3 +1,10 @@
+change from 0.4.3 to 0.4.4
+- verified ownCloud support
+- store username and password for class internal use
+- cleaned the class
+- automaticly adds a / at the end of an url if it's missing
+- added a URL-Schema list
+
 change from 0.4.2 to 0.4.3
 - added sabreDAV support
 

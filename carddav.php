@@ -46,7 +46,7 @@
  * $carddav->add($vcard);
  * 
  * 
- *  CardDAV update query
+ * CardDAV update query
  * --------------------
  * $vcard = 'BEGIN:VCARD
  * VERSION:3.0
@@ -61,12 +61,20 @@
  * $carddav->update($vcard, '0126FFB4-2EB74D0A-302EA17F');
  * 
  * 
+ * URL-Schema list
+ * ---------------
+ * DAViCal: https://example.com/{resource|principal}/{collection}/
+ * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal}/{collection}/ 
+ * memotoo: https://sync.memotoo.com/cardDAV/
+ * SabreDAV: https://demo.sabredav.org/addressbooks/{resource|principal}/{collection}/
+ * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{username}/default/
+ * 
  * 
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.3
+ * @version 0.4.4
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -78,28 +86,28 @@ class carddav_backend
 	 *
 	 * @var string
 	 */
-	protected $url = null;
+	private $url = null;
 	
 	/**
 	 * authentification information
 	 * 
 	 * @var string
 	 */
-	protected $auth = null;
+	private $auth = null;
 	
 	/**
 	 * characters used for vCard id generation
 	 * 
 	 * @var array
 	 */
-	protected $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
+	private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
 	
 	/**
 	 * user agent displayed in http requests
 	 * 
 	 * @var string
 	 */
-	protected $user_agent = 'CardDAV-PHP/0.4.3';
+	private $user_agent = 'CardDAV-PHP/0.4.4';
 	
 	/**
 	 * constructor
@@ -123,6 +131,11 @@ class carddav_backend
 	public function set_url($url)
 	{
 		$this->url = $url;
+		
+		if (substr($this->url, -1, 1) !== '/')
+		{
+			$this->url = $this->url . '/';
+		}
 	}
 	
 	/**
@@ -133,7 +146,9 @@ class carddav_backend
 	 */
 	public function set_auth($username, $password)
 	{
-		$this->auth = $username.':'.$password;
+		$this->username = $username;
+		$this->password = $password;
+		$this->auth = $username . ':' . $password;
 	}
 
 	/**
@@ -166,7 +181,7 @@ class carddav_backend
 	public function get_vcard($vcard_id)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
-		return $this->query($this->url.$vcard_id.'.vcf', 'GET');
+		return $this->query($this->url . $vcard_id . '.vcf', 'GET');
 	}
 	
 	/**
@@ -196,7 +211,7 @@ class carddav_backend
 	 */
 	public function delete($vcard_id)
 	{
-		return $this->query($this->url.$vcard_id.'.vcf', 'DELETE');
+		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE');
 	}
 	
 	/**
@@ -214,7 +229,7 @@ class carddav_backend
 		}
 		
 		$vcard = str_replace("\t", null, $vcard);
-		return $this->query($this->url.$vcard_id.'.vcf', 'PUT', $vcard, 'text/vcard');
+		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
 	}
 	
 	/**
@@ -366,9 +381,9 @@ class carddav_backend
 		}
 
 		$carddav = new carddav_backend($this->url);
-		$carddav->auth = $this->auth;
+		$carddav->set_auth($this->username, $this->password);
 		
-		if (!preg_match('/BEGIN:VCARD/', $carddav->query($this->url.$id.'.vcf', 'GET')))
+		if (!preg_match('/BEGIN:VCARD/', $carddav->query($this->url . $id . '.vcf', 'GET')))
 		{
 			return $id;
 		}
