@@ -66,21 +66,35 @@
  * DAViCal: https://example.com/{resource|principal}/{collection}/
  * Apple Addressbook Server: https://example.com/addressbooks/users/{resource|principal}/{collection}/ 
  * memotoo: https://sync.memotoo.com/cardDAV/
- * SabreDAV: https://demo.sabredav.org/addressbooks/{resource|principal}/{collection}/
- * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{username}/default/
+ * SabreDAV: https://example.com/addressbooks/{resource|principal}/{collection}/
+ * ownCloud: https://example.com/apps/contacts/carddav.php/addressbooks/{username}/{resource|principal}/
  * 
  * 
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.4
+ * @version 0.4.5
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
 
 class carddav_backend
 {
+	/**
+	 * CardDAV-PHP Version
+	 * 
+	 * @var constant
+	 */
+	const VERSION = '0.4.5';
+	
+	/**
+	 * user agent displayed in http requests
+	 * 
+	 * @var constant
+	 */
+	const USERAGENT = 'CardDAV-PHP/';
+	
 	/**
 	 * CardDAV-Server url
 	 *
@@ -89,11 +103,25 @@ class carddav_backend
 	private $url = null;
 	
 	/**
-	 * authentification information
+	 * authentication information
 	 * 
 	 * @var string
 	 */
 	private $auth = null;
+	
+	/**
+	* authentication: username
+	*
+	* @var string
+	*/
+	private $username = null;
+	
+	/**
+	* authentication: password
+	*
+	* @var string
+	*/
+	private $password = null;
 	
 	/**
 	 * characters used for vCard id generation
@@ -101,13 +129,6 @@ class carddav_backend
 	 * @var array
 	 */
 	private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
-	
-	/**
-	 * user agent displayed in http requests
-	 * 
-	 * @var string
-	 */
-	private $user_agent = 'CardDAV-PHP/0.4.4';
 	
 	/**
 	 * constructor
@@ -139,7 +160,7 @@ class carddav_backend
 	}
 	
 	/**
-	 * set authentification information
+	 * set authentication information
 	 * 
 	 * @param string $username CardDAV-Server username
 	 * @param string $password CardDAV-Server password
@@ -325,7 +346,7 @@ class carddav_backend
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-		curl_setopt($ch, CURLOPT_USERAGENT, $this->user_agent);
+		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT.self::VERSION);
 
 		if ($content !== null)
 		{

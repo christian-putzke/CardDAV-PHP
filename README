@@ -9,7 +9,7 @@ Features
 * supports many authentification methods
 * add/update/delete vCards on a CardDAV-Server
 * get single vCards from a CardDAV-Server
-* check server connection
+* check CardDAV-Server connection
 * tested CardDAV-Servers: DAViCal, Apple Addressbook Server, memotoo, SabreDAV, ownCloud
 
 
