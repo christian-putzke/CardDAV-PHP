@@ -1,3 +1,6 @@
+change from 0.4.5 to 0.4.6
+- added "get xml vcard"-method to get a single vCard with more detailed information
+
 change from 0.4.4 to 0.4.5
 - minor comment and class changes
 

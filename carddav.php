@@ -15,6 +15,13 @@
  * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
  * $carddav->set_auth('username', 'password');
  * echo $carddav->get_vcard('0126FFB4-2EB74D0A-302EA17F');
+ * 
+ * 
+ * xml vCard query
+ * ------------------
+ * $carddav = new carddav_backend('https://davical.example.com/user/contacts/');
+ * $carddav->set_auth('username', 'password');
+ * echo $carddav->get_xml_vcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
  * check CardDAV-Server connection
@@ -74,7 +81,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.5
+ * @version 0.4.6
  * @license http://gnu.org/copyleft/gpl.html GNU GPL v2 or later
  * 
  */
@@ -86,7 +93,7 @@ class carddav_backend
 	 * 
 	 * @var constant
 	 */
-	const VERSION = '0.4.5';
+	const VERSION = '0.4.6';
 	
 	/**
 	 * user agent displayed in http requests
@@ -101,6 +108,13 @@ class carddav_backend
 	 * @var string
 	 */
 	private $url = null;
+	
+	/**
+	 * CardDAV-Server url_parts
+	 *
+	 * @var string
+	 */
+	private $url_parts = null;
 	
 	/**
 	 * authentication information
@@ -157,6 +171,8 @@ class carddav_backend
 		{
 			$this->url = $this->url . '/';
 		}
+		
+		$this->url_parts = parse_url($this->url);
 	}
 	
 	/**
@@ -194,15 +210,52 @@ class carddav_backend
 	}
 	
 	/**
-	 * get a vCard from the CardDAV-Server
-	 * 
-	 * @param string $id vCard id on the CardDAV-Server
-	 * @return string vCard (text/vcard)
-	 */
+	* get a clean vCard from the CardDAV-Server
+	*
+	* @param string $id vCard id on the CardDAV-Server
+	* @return string vCard (text/vcard)
+	*/
 	public function get_vcard($vcard_id)
 	{
 		$vcard_id = str_replace('.vcf', null, $vcard_id);
 		return $this->query($this->url . $vcard_id . '.vcf', 'GET');
+	}
+	
+	/**
+	 * get a vCard + XML from the CardDAV-Server
+	 * 
+	 * @param string $id vCard id on the CardDAV-Server
+	 * @return string vCard (text/xml)
+	 */
+	public function get_xml_vcard($vcard_id)
+	{
+		$vcard_id = str_replace('.vcf', null, $vcard_id);
+		
+		$xml = new XMLWriter();
+		$xml->openMemory();
+		$xml->setIndent(4);
+		$xml->startDocument('1.0', 'utf-8');
+			$xml->startElement('C:addressbook-multiget');
+				$xml->writeAttribute('xmlns:D', 'DAV:');
+				$xml->writeAttribute('xmlns:C', 'urn:ietf:params:xml:ns:carddav');
+				$xml->startElement('D:prop');
+					$xml->writeElement('D:getetag');
+					$xml->writeElement('D:getlastmodified');
+				$xml->endElement();
+				$xml->writeElement('D:href', $this->url_parts['path'] . $vcard_id . '.vcf');
+			$xml->endElement();
+		$xml->endDocument();
+		
+		$response = $this->query($this->url, 'REPORT', $xml->outputMemory(), 'text/xml');
+		
+		if ($response === false)
+		{
+			return $response;
+		}
+		else
+		{
+			return $this->simplify($response, true);
+		}
 	}
 	
 	/**
@@ -275,7 +328,6 @@ class carddav_backend
 	private function simplify($response, $include_vcards = true)
 	{
 		$response = $this->clean_response($response);
-		
 		$xml = new SimpleXMLElement($response);
 
 		$simplified_xml = new XMLWriter();
