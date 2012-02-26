@@ -1,66 +1,70 @@
-change from 0.4.5 to 0.4.6
+changes from v0.4.6 to v0.4.7
+- changed license from LGPLv2 to AGPLv3
+- changed minor wordings in the changelog
+
+changes from v0.4.5 to v0.4.6
 - added "get xml vcard"-method to get a single vCard with more detailed information
 
-change from 0.4.4 to 0.4.5
+changes from v0.4.4 to v0.4.5
 - minor comment and class changes
 
-change from 0.4.3 to 0.4.4
+changes from v0.4.3 to v0.4.4
 - verified ownCloud support
 - store username and password for class internal use
 - cleaned the class
 - automaticly adds a / at the end of an url if it's missing
 - added a URL-Schema list
 
-change from 0.4.2 to 0.4.3
+changes from v0.4.2 to v0.4.3
 - added sabreDAV support
 
-change from 0.4.1 to 0.4.2
+changes from v0.4.1 to v0.4.2
 - standardized "get last modified" seems not to work with every server configuration -> no standardized date anymore!
 
-change from 0.4 to 0.4.1
+changes from v0.4 to v0.4.1
 - added memotoo support
 - bugfix: mostly check_connection() returned "true" if the server connection failed
 - removed unused code
 - standardized "get last modified" to unix-timestamp
 - changed version naming
 
-change from 0.3.3 to 0.4
+changes from v0.3.3 to v0.4
 - switched from "fopen" to curl for all server requests
 - get() uses now PROPFIND instead of REPORT
 - simplified response additionally returns "get last modified"
 - added Apple addressbook server support
 
-change from 0.3.3 to 0.3.4
+changes from v0.3.3 to v0.3.4
 - vCard id returned by get() excludes now the file extension ".vcf"
 
-change from 0.3.2 to 0.3.3
+changes from v0.3.2 to v0.3.3
 - minor comment changes
 
-change from 0.3.1 to 0.3.2
+changes from v0.3.1 to v0.3.2
 - minor phpdoc changes / extensions
 
-change from 0.3 to 0.3.1
+changes from v0.3 to v0.3.1
 - get only entries if a vCard id exists
 - get etag bugfix (PROFIND -> REPORT)
 - vCard id generator bugfix
 - minor class-structure and comment changes
 
-change from 0.2.2 to 0.3
+changes from v0.2.2 to v0.3
 - deleted unused methods
 - added server connection check
 - added some more examples
 - get() can now return complete vCards
 
-change from 0.2.1 to 0.2.2
+changes from v0.2.1 to v0.2.2
 - added error handling
 - added phpdoc support
 - cleaned comments / variables
 
-change from 0.2 to 0.2.1
+changes from v0.2 to v0.2.1
 - xml requests will be built by the XMLWriter
 - added etag to simplified response
 
-change from 0.1.2 to 0.2
+changes from v0.1.2 to v0.2
 - added add functionality
 - added update functionality
 - added get vCard functionality
@@ -68,13 +72,13 @@ change from 0.1.2 to 0.2
 - added simplified response
 - set vCard standard fields (Version, N, FN)
 
-change from 0.1.1 to 0.1.2
+changes from v0.1.1 to v0.1.2
 - added delete functionality
 
-change from 0.1 to 0.1.1
+changes from v0.1 to v0.1.1
 - added filter type (OR / AND)
 
-release 0.1
+release v0.1
 - query CardDAV server with XML-Response (only tested on davical)
 - filter functionality for search implementations
 - fieldsets for minimal vCards within the XML-Response
