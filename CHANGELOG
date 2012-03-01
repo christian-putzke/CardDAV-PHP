@@ -1,3 +1,6 @@
+changes from v0.4.7 to v0.4.8
+- extended clean_response() method and added utf-encoding
+
 changes from v0.4.6 to v0.4.7
 - changed license from LGPLv2 to AGPLv3
 - changed minor wordings in the changelog

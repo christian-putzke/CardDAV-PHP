@@ -81,7 +81,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.7
+ * @version 0.4.8
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
@@ -93,7 +93,7 @@ class carddav_backend
 	 *
 	 * @var constant
 	 */
-	const VERSION = '0.4.7';
+	const VERSION = '0.4.8';
 
 	/**
 	 * user agent displayed in http requests
@@ -375,8 +375,11 @@ class carddav_backend
 	 */
 	private function clean_response($response)
 	{
+		$response = utf8_encode($response);
 		$response = str_replace('D:', null, $response);
 		$response = str_replace('d:', null, $response);
+		$response = str_replace('C:', null, $response);
+		$response = str_replace('c:', null, $response);
 
 		return $response;
 	}
