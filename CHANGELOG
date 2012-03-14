@@ -1,99 +1,105 @@
-changes from v0.4.9 to v0.5
-- added SOGo support
+Changes from v0.5 to v0.5.1
+- Added SOGo to the CardDAV server list
+- Deleted the method get_last_vcard_id() -> the add method does now returns the vCard id
+- Added posibility to get a raw XML vCard response to the get_xml_vcard() method
+- Some comment, documentation and phpdoc changes
+
+Changes from v0.4.9 to v0.5
+- Added SOGo support
 - Special thanks to xbgmsharp for the great feedback!
-- cache curl connection so that only one authentication process is needed
-- added boolean return value for add-, edit- and delete-methods
-- added addressbook handling
+- Cache curl connection so that only one authentication process is needed
+- Added boolean return value for add-, edit- and delete-methods
+- Added addressbook handling
 
-changes from v0.4.8 to v0.4.9
-- new method: clean_vcard
-- new method: get_last_vcard_id
+Changes from v0.4.8 to v0.4.9
+- New method: clean_vcard
+- New method: get_last_vcard_id
 
-changes from v0.4.7 to v0.4.8
-- extended clean_response() method and added utf-encoding
+Changes from v0.4.7 to v0.4.8
+- Extended clean_response() method and added utf-encoding
 
-changes from v0.4.6 to v0.4.7
-- changed license from LGPLv2 to AGPLv3
-- changed minor wordings in the changelog
+Changes from v0.4.6 to v0.4.7
+- Changed license from LGPLv2 to AGPLv3
+- Changed minor wordings in the changelog
 
-changes from v0.4.5 to v0.4.6
-- added "get xml vcard"-method to get a single vCard with more detailed information
+Changes from v0.4.5 to v0.4.6
+- Added "get XML vCard"-method to get a single vCard with more detailed information
 
-changes from v0.4.4 to v0.4.5
-- minor comment and class changes
+Changes from v0.4.4 to v0.4.5
+- Minor comment and class changes
 
-changes from v0.4.3 to v0.4.4
-- verified ownCloud support
-- store username and password for class internal use
-- cleaned the class
-- automaticly adds a / at the end of an url if it's missing
-- added a URL-Schema list
+Changes from v0.4.3 to v0.4.4
+- Verified ownCloud support
+- Store username and password for class internal use
+- Cleaned the class
+- Automaticly adds a / at the end of an url if it's missing
+- Added a URL-Schema list
 
-changes from v0.4.2 to v0.4.3
-- added sabreDAV support
+Changes from v0.4.2 to v0.4.3
+- Added sabreDAV support
 
-changes from v0.4.1 to v0.4.2
-- standardized "get last modified" seems not to work with every server configuration -> no standardized date anymore!
+Changes from v0.4.1 to v0.4.2
+- Standardized "get last modified" seems not to work with every server configuration -> no standardized date anymore!
 
-changes from v0.4 to v0.4.1
-- added memotoo support
-- bugfix: mostly check_connection() returned "true" if the server connection failed
-- removed unused code
-- standardized "get last modified" to unix-timestamp
-- changed version naming
+Changes from v0.4 to v0.4.1
+- Added memotoo support
+- Bugfix: mostly check_connection() returned "true" if the server connection failed
+- Removed unused code
+- Standardized "get last modified" to unix-timestamp
+- Changed version naming
 
-changes from v0.3.3 to v0.4
-- switched from "fopen" to curl for all server requests
+Changes from v0.3.3 to v0.4
+- Switched from "fopen" to curl for all server requests
 - get() uses now PROPFIND instead of REPORT
-- simplified response additionally returns "get last modified"
-- added Apple addressbook server support
+- Simplified response additionally returns "get last modified"
+- Added Apple addressbook server support
 
-changes from v0.3.3 to v0.3.4
+Changes from v0.3.3 to v0.3.4
 - vCard id returned by get() excludes now the file extension ".vcf"
 
-changes from v0.3.2 to v0.3.3
-- minor comment changes
+Changes from v0.3.2 to v0.3.3
+- Minor comment changes
 
-changes from v0.3.1 to v0.3.2
-- minor phpdoc changes / extensions
+Changes from v0.3.1 to v0.3.2
+- Minor phpdoc changes / extensions
 
-changes from v0.3 to v0.3.1
-- get only entries if a vCard id exists
-- get etag bugfix (PROFIND -> REPORT)
+Changes from v0.3 to v0.3.1
+- Get only entries if a vCard id exists
+- Get etag bugfix (PROFIND -> REPORT)
 - vCard id generator bugfix
-- minor class-structure and comment changes
+- Minor class-structure and comment changes
 
-changes from v0.2.2 to v0.3
-- deleted unused methods
-- added server connection check
-- added some more examples
+Changes from v0.2.2 to v0.3
+- Deleted unused methods
+- Added server connection check
+- Added some more examples
 - get() can now return complete vCards
 
-changes from v0.2.1 to v0.2.2
-- added error handling
-- added phpdoc support
-- cleaned comments / variables
+Changes from v0.2.1 to v0.2.2
+- Added error handling
+- Added phpdoc support
+- Cleaned comments / variables
 
-changes from v0.2 to v0.2.1
-- xml requests will be built by the XMLWriter
-- added etag to simplified response
+Changes from v0.2 to v0.2.1
+- XML requests will be built by the XMLWriter
+- Added etag to simplified response
 
-changes from v0.1.2 to v0.2
-- added add functionality
-- added update functionality
-- added get vCard functionality
-- added user-agent to http-requests
-- added simplified response
-- set vCard standard fields (Version, N, FN)
+Changes from v0.1.2 to v0.2
+- Added add functionality
+- Added update functionality
+- Added get vCard functionality
+- Added user-agent to http-requests
+- Added simplified response
+- Set vCard standard fields (Version, N, FN)
 
-changes from v0.1.1 to v0.1.2
-- added delete functionality
+Changes from v0.1.1 to v0.1.2
+- Added delete functionality
 
-changes from v0.1 to v0.1.1
-- added filter type (OR / AND)
+Changes from v0.1 to v0.1.1
+- Added filter type (OR / AND)
 
 release v0.1
-- query CardDAV server with XML-Response (only tested on davical)
-- filter functionality for search implementations
-- fieldsets for minimal vCards within the XML-Response
-- authentification
+- Query CardDAV server with XML response (only tested on davical)
+- Filter functionality for search implementations
+- Fieldsets for minimal vCards within the XML response
+- Authentification
