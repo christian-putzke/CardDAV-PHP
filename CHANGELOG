@@ -1,3 +1,10 @@
+changes from v0.4.9 to v0.5
+- added SOGo support
+- Special thanks to xbgmsharp for the great feedback!
+- cache curl connection so that only one authentication process is needed
+- added boolean return value for add-, edit- and delete-methods
+- added addressbook handling
+
 changes from v0.4.8 to v0.4.9
 - new method: clean_vcard
 - new method: get_last_vcard_id

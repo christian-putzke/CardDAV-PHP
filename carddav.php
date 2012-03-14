@@ -81,7 +81,7 @@
  * @copyright Graviox Studios
  * @link http://www.graviox.de
  * @since 20.07.2011
- * @version 0.4.9
+ * @version 0.5
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
@@ -91,14 +91,14 @@ class carddav_backend
 	/**
 	 * CardDAV-PHP Version
 	 *
-	 * @var constant
+	 * @constant string
 	 */
-	const VERSION = '0.4.9';
+	const VERSION = '0.5';
 
 	/**
 	 * user agent displayed in http requests
 	 *
-	 * @var constant
+	 * @constant string
 	 */
 	const USERAGENT = 'CardDAV-PHP/';
 
@@ -152,10 +152,18 @@ class carddav_backend
 	private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
 
 	/**
+	 * CardDAV-Server connection (curl handle)
+	 *
+	 * @var resource
+	 */
+	private $curl;
+
+	/**
 	 * constructor
 	 * set the CardDAV-Server url
 	 *
 	 * @param string $url CardDAV-Server url
+	 * @return void
 	 */
 	public function __construct($url = null)
 	{
@@ -169,6 +177,7 @@ class carddav_backend
 	* set the CardDAV-Server url
 	*
 	* @param string $url CardDAV-Server url
+	* @return void
 	*/
 	public function set_url($url)
 	{
@@ -187,6 +196,7 @@ class carddav_backend
 	 *
 	 * @param string $username CardDAV-Server username
 	 * @param string $password CardDAV-Server password
+	 * @return void
 	 */
 	public function set_auth($username, $password)
 	{
@@ -282,16 +292,7 @@ class carddav_backend
 	*/
 	public function check_connection()
 	{
-		$response = $this->query($this->url, 'OPTIONS');
-
-		if ($response === false)
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return $this->query($this->url, 'OPTIONS', null, null, true);
 	}
 
 	/**
@@ -316,7 +317,7 @@ class carddav_backend
 	public function delete($vcard_id)
 	{
 		$this->vcard_id = $vcard_id;
-		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE');
+		return $this->query($this->url . $vcard_id . '.vcf', 'DELETE', null, null, true);
 	}
 
 	/**
@@ -331,7 +332,7 @@ class carddav_backend
 		$this->vcard_id = $vcard_id;
 		$vcard = $this->clean_vcard($vcard);
 
-		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
+		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true);
 	}
 
 	/**
@@ -347,7 +348,7 @@ class carddav_backend
 		$this->vcard_id = $vcard_id;
 		$vcard = $this->clean_vcard($vcard);
 
-		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
+		return $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard', true);
 	}
 
 	/**
@@ -378,17 +379,39 @@ class carddav_backend
 						if (!empty($id))
 						{
 							$simplified_xml->startElement('element');
-							$simplified_xml->writeElement('id', $id);
-							$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+								$simplified_xml->writeElement('id', $id);
+								$simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+								$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 
-							if ($include_vcards === true)
-							{
-								$simplified_xml->writeElement('vcard', $this->get_vcard($id));
-							}
-
+								if ($include_vcards === true)
+								{
+									$simplified_xml->writeElement('vcard', $this->get_vcard($id));
+								}
 							$simplified_xml->endElement();
 						}
+					}
+					else if (preg_match('/unix-directory/', $response->propstat->prop->getcontenttype))
+					{
+						if (isset($response->propstat->prop->href))
+						{
+							$href = $response->propstat->prop->href;
+						}
+						else if (isset($response->href))
+						{
+							$href = $response->href;
+						}
+						else
+						{
+							$href = null;
+						}
+
+
+						$url = str_replace($this->url_parts['path'], null, $this->url) . $href;
+						$simplified_xml->startElement('addressbook_element');
+							$simplified_xml->writeElement('display_name', $response->propstat->prop->displayname);
+							$simplified_xml->writeElement('url', $url);
+							$simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+						$simplified_xml->endElement();
 					}
 				}
 
@@ -416,49 +439,76 @@ class carddav_backend
 	}
 
 	/**
+	 * curl initialization
+	 *
+	 * @return void
+	 */
+	public function curl_init()
+	{
+		if (empty($this->curl))
+		{
+			$this->curl = curl_init();
+			curl_setopt($this->curl, CURLOPT_HEADER, false);
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($this->curl, CURLOPT_USERAGENT, self::USERAGENT.self::VERSION);
+
+			if ($this->auth !== null)
+			{
+				curl_setopt($this->curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+				curl_setopt($this->curl, CURLOPT_USERPWD, $this->auth);
+			}
+		}
+	}
+
+	/**
 	 * quries the CardDAV-Server via curl and returns the response
 	 *
+	 * @param string $url CardDAV-Server URL
 	 * @param string $method HTTP-Method like (OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, COPY, MOVE)
 	 * @param string $content content for CardDAV-Queries
 	 * @param string $content_type set content-type
+	 * @param boolean $return_boolean returns just a boolean
 	 * @return string CardDAV xml-response
 	 */
-	private function query($url, $method, $content = null, $content_type = null)
+	private function query($url, $method, $content = null, $content_type = null, $return_boolean = false)
 	{
-		$ch = curl_init($url);
+		$this->curl_init();
 
-		curl_setopt($ch, CURLOPT_HEADER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT.self::VERSION);
+		curl_setopt($this->curl, CURLOPT_URL, $url);
+		curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $method);
 
 		if ($content !== null)
 		{
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+			curl_setopt($this->curl, CURLOPT_POST, true);
+			curl_setopt($this->curl, CURLOPT_POSTFIELDS, $content);
+		}
+		else
+		{
+			curl_setopt($this->curl, CURLOPT_POST, false);
+			curl_setopt($this->curl, CURLOPT_POSTFIELDS, null);
 		}
 
 		if ($content_type !== null)
 		{
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
 		}
-
-		if ($this->auth !== null)
+		else
 		{
-			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-			curl_setopt($ch, CURLOPT_USERPWD, $this->auth);
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
 		}
 
-		$response = curl_exec($ch);
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		curl_close($ch);
+		$response = curl_exec($this->curl);
+		$http_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
 		if (in_array($http_code, array(200, 207)))
 		{
-			return $response;
+			return ($return_boolean === true ? true : $response);
+		}
+		else if ($return_boolean === true && in_array($http_code, array(201, 204)))
+		{
+			return true;
 		}
 		else
 		{
@@ -490,13 +540,27 @@ class carddav_backend
 		$carddav = new carddav_backend($this->url);
 		$carddav->set_auth($this->username, $this->password);
 
-		if (!preg_match('/BEGIN:VCARD/', $carddav->query($this->url . $id . '.vcf', 'GET')))
+		if ($carddav->query($this->url . $id . '.vcf', 'GET', null, null, true))
 		{
-			return $id;
+			return $this->generate_vcard_id();
 		}
 		else
 		{
-			return $this->generate_vcard_id();
+			return $id;
+		}
+	}
+
+	/**
+	 * destructor
+	 * close curl connection if it's open
+	 *
+	 * @return void
+	 */
+	public function __destruct()
+	{
+		if (!empty($this->curl))
+		{
+			curl_close($this->curl);
 		}
 	}
 }
