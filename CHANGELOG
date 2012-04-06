@@ -1,3 +1,8 @@
+Changes from v0.5.1 to v0.5.2
+- Added debug function
+- Some minor class structure changes
+- Some comment, documentation and phpdoc changes
+
 Changes from v0.5 to v0.5.1
 - Added SOGo to the CardDAV server list
 - Deleted the method get_last_vcard_id() -> the add method does now returns the vCard id

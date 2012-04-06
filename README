@@ -16,12 +16,14 @@ Features
 Installation
 ------------
 * Nothing to install - it's standalone
-* Requires curl since version 0.4
+* Requires PHP 5.3 and CURL
 * The documentation can be found in the class itself
+
 
 Special thanks
 --------------
 * xbgmsharp for the great feedback!
+
 
 Contact
 -------
