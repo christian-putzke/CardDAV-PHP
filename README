@@ -6,7 +6,7 @@ This is a simple CardDAV client written in PHP called "CardDAV PHP".
 Features
 --------
 * Query your CardDAV server with XML response (simplified or raw)
-* Supports many authentification methods
+* Supports many authentication methods
 * You can add / update / delete vCards from your CardDAV server
 * Get single vCards (raw or extended XML) from your CardDAV server
 * Check CardDAV server connection
@@ -29,5 +29,5 @@ Contact
 -------
 * Author: Christian Putzke <christian.putzke@graviox.de>
 * Report feature requests and bugs here: https://github.com/graviox/CardDAV-PHP/issues
-* Visit Graviox Studios: http://www.graviox.de/
-* Follow me on Twitter: https://twitter.com/graviox/
+* Visit my website: http://www.graviox.de/
+* Follow me on Twitter: https://twitter.com/cputzke/
